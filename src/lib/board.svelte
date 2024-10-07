@@ -2,14 +2,17 @@
 import "../app.css";
 import King from "../lib/king.svelte";
 import X from "../lib/x.svelte";
+import { onMount } from 'svelte';
 
 const EMPTY = 0;
 const MARKED = 1;
 const KING = 2;
 
-let grid_dim = 8;
+let grid_dim = 4;
 let cur_num_queens = 0;
 let game_over = false;
+let isWinning = false;
+
 
 let colorRegions = [];
 let boardState = [];
@@ -17,7 +20,13 @@ let boardState = [];
 let getColorForRegion = (index) => {
     const colors = [
         '#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', 
-        '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF'
+        '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF',
+        '#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF',
+        '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF',
+        '#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF',
+        '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF',
+        '#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF',
+        '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF',
     ];
     return colors[index % colors.length];
 }
@@ -57,7 +66,9 @@ let handleCellClick = (cell) => {
         }
         if (cur_num_queens === grid_dim) {
             game_over = true;
+            isWinning = true;
             setTimeout(() => {
+                isWinning = false;
                 alert("You win!");
                 generatePuzzle();
             }, 1000);
@@ -186,7 +197,7 @@ let generateInterestingRegions = (queens) => {
                 if (regions[i][j] !== null) {
                     let neighbors = getNeighbors(i, j);
                     for (let [r, c] of neighbors) {
-                        if (regions[r][c] === null && Math.random() < 0.8) { // Adjust probability for more interesting shapes
+                        if (regions[r][c] === null && Math.random() < 0.3) { // Adjust probability for more interesting shapes
                             regions[r][c] = regions[i][j];
                             unassigned--;
                         }
@@ -268,26 +279,56 @@ let generatePuzzle = () => {
     initBoardState();
 }
 
+// onMount(() => {
+//     const style = document.createElement('style');
+//     style.textContent = `
+//         @keyframes twinkle {
+//             0% { transform: scale(1); }
+//             50% { transform: scale(1.2); }
+//             100% { transform: scale(1); }
+//         }
+//         .winning-king {
+//             animation: twinkle 0.5s infinite;
+//         }
+//     `;
+//     document.head.appendChild(style);
+// });
+
+
+
 generatePuzzle();
 
 </script>
-<style>
 
+<style>
+@keyframes twinkle {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+.winning-king {
+    animation: twinkle 1s;
+}
 </style>
+
 <div class="w-screen h-screen flex flex-col items-center justify-center">
     <div
-        class="board outline outline-2 w-[80vmin] max-w-[500px] aspect-square grid grid-rows-8 grid-cols-8"
+        class="board outline outline-2 w-[80vmin] aspect-square grid"
         style="grid-template-columns: repeat({grid_dim}, 1fr); grid-template-rows: repeat({grid_dim}, 1fr);"
     >
         {#each generateCells() as cell}
             <button on:click={() => handleCellClick(cell)}
-                class="cell bg-gray-200 border border-gray-300 p-3"
+                class="cell bg-gray-200 border border-gray-300 p-2 text-xl"
                 style="background-color: {getColorForRegion(colorRegions[cell.row][cell.col])};"
             >
                 {#if boardState[cell.row][cell.col] === MARKED}
                     <X />
                 {:else if boardState[cell.row][cell.col] === KING}
+                <div class:winning-king={isWinning} 
+                    style="animation-delay: {cell.row * 0.1}s;"
+                >
                     <King />
+                </div>
                 {/if}
             </button>
         {/each}
